@@ -1,0 +1,15 @@
+{
+  "name": "helios-monorepo",
+  "private": true,
+  "workspaces": [
+    "packages/*"
+  ],
+  "scripts": {
+    "dev": "vercel dev",
+    "build": "vercel build",
+    "start": "vercel start"
+  },
+  "devDependencies": {
+    "vercel": "^34.0.0"
+  }
+}
