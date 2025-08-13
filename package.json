@@ -5,7 +5,8 @@
     "packages/*"
   ],
   "scripts": {
-    "dev": "vercel dev",
+    "dev:web": "npm run dev --workspace=web",
+    "dev:api": "uvicorn packages.api.main:app --reload",
     "build": "vercel build",
     "start": "vercel start"
   },

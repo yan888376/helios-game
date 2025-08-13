@@ -32,13 +32,18 @@ packages/
 ```bash
 # Initial setup (from root)
 npm install
-vercel dev  # Starts both frontend and backend with Vercel environment variables
 ```
 
-### Local Development
+### Local Development (Zero-Trust Mode)
 ```bash
-vercel dev  # Primary development command - runs entire stack locally
+# Frontend development (UI debugging)
+npm run dev:web
+
+# Backend development (API logic, requires: pip install uvicorn fastapi)
+npm run dev:api
 ```
+
+**Important**: Local development runs without API keys. External API calls will fail (expected behavior). Complete functionality testing is done via GitHub PR Vercel preview environments.
 
 ## Core System Components
 
@@ -66,13 +71,18 @@ vercel dev  # Primary development command - runs entire stack locally
 ## Mandatory Development Contracts
 
 ### Environment Variables (Managed by Mike via Vercel)
+**Backend Variables** (Python `os.environ.get()`):
 - `VERCEL_AI_GATEWAY_URL`: AI Gateway endpoint
 - `VERCEL_AI_GATEWAY_API_KEY`: Gateway authentication
 - `SUPABASE_URL`: Database URL
-- `SUPABASE_ANON_KEY`: Database public key
+- `SUPABASE_SERVICE_KEY`: Database service key
 - `ZEP_API_KEY`: Memory service key
 
-**Note**: Never hardcode secrets. Use `vercel dev` for automatic environment variable sync.
+**Frontend Variables** (Next.js `process.env.`):
+- `NEXT_PUBLIC_SUPABASE_URL`: Public database URL
+- `NEXT_PUBLIC_SUPABASE_ANON_KEY`: Public database key
+
+**Note**: Never hardcode secrets. Variables are only available in Vercel preview/production environments, not locally.
 
 ### LLM Call Standard
 All AI model calls **MUST** go through Vercel AI Gateway:
@@ -112,15 +122,18 @@ def call_llm(model_name: str, system_prompt: str, user_prompt: str):
 - `fix/[name]/[description]` - Bug fixes
 - Example: `feature/ethan/agent-core-base`
 
-### Pull Request Process
-1. Sync: `git checkout main && git pull origin main`
-2. Create branch: `git checkout -b feature/your-name/your-feature`
-3. Develop with `vercel dev`
-4. Push: `git push origin feature/your-name/your-feature`
-5. Create PR with Vercel preview deployment link
-6. Wait for Mike's approval and merge
+### Zero-Trust Development Workflow
+1. **Sync**: `git checkout main && git pull origin main`
+2. **Create branch**: `git checkout -b feature/your-name/your-feature`
+3. **Local coding**: Use `npm run dev:web` or `npm run dev:api` for development
+4. **Push**: `git push origin feature/your-name/your-feature`
+5. **Create PR**: Submit PR with Vercel preview deployment link for cloud testing
+6. **Code review**: Wait for Mike's approval and merge
 
-**Critical**: Never push directly to `main` branch. All changes go through Pull Requests.
+**Critical**: 
+- Never push directly to `main` branch
+- Local development is for coding only
+- Full functionality testing happens in Vercel preview environments
 
 ## MVP Scope
 

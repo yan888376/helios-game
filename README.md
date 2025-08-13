@@ -42,12 +42,16 @@
    npm install
    ```
 
-3. **启动开发环境**
+3. **本地开发** (零信任模式 - 无需API密钥)
    ```bash
-   npm run dev
-   # 或
-   vercel dev
+   # 前端开发 (UI调试)
+   npm run dev:web
+   
+   # 后端开发 (API逻辑，需要先安装 pip install uvicorn fastapi)
+   npm run dev:api
    ```
+
+**⚠️ 重要**: 本地开发时，外部API调用会失败(正常现象)。完整功能测试请通过GitHub PR的Vercel预览环境进行。
 
 ### 项目结构
 
@@ -87,26 +91,39 @@ helios-game/
 
 ## 开发协作流程
 
+### 零信任本地开发工作流
+
+我们采用"零信任本地开发"模式：
+- **本地**: 编写代码、UI开发、离线逻辑测试
+- **云端**: 通过GitHub PR在Vercel预览环境进行完整功能测试
+
 ### 分支规范
 - `feature/[姓名]/[功能描述]`
 - `fix/[姓名]/[修复描述]`
 
-### 开发流程
-1. 同步最新代码: `git checkout main && git pull origin main`
-2. 创建功能分支: `git checkout -b feature/your-name/your-feature`
-3. 本地开发: 使用 `vercel dev` 进行实时测试
-4. 提交推送: `git push origin feature/your-name/your-feature`
-5. 创建Pull Request到main分支
-6. 等待审查和合并
+### 完整开发周期
+1. **同步主干**: `git checkout main && git pull origin main`
+2. **创建分支**: `git checkout -b feature/your-name/your-feature`
+3. **本地编码**: 使用 `npm run dev:web` 或 `npm run dev:api` 进行本地开发
+4. **推送代码**: `git push origin feature/your-name/your-feature`
+5. **创建PR**: 在GitHub创建Pull Request到main分支
+6. **云端测试**: 使用Vercel自动生成的预览环境链接进行完整测试
+7. **代码审查**: 等待团队审查和合并
 
 ## 环境变量
 
-所有敏感信息通过Vercel环境变量管理：
+所有敏感信息通过Vercel云端统一管理，**仅在预览环境和生产环境可用**：
+
+**后端专用** (Python `os.environ.get()`):
 - `VERCEL_AI_GATEWAY_URL`: AI网关端点
 - `VERCEL_AI_GATEWAY_API_KEY`: API认证密钥
 - `SUPABASE_URL`: 数据库URL
-- `SUPABASE_ANON_KEY`: 数据库公钥
+- `SUPABASE_SERVICE_KEY`: 数据库服务密钥
 - `ZEP_API_KEY`: 记忆服务密钥
+
+**前端专用** (Next.js `process.env.`):
+- `NEXT_PUBLIC_SUPABASE_URL`: 公开数据库URL
+- `NEXT_PUBLIC_SUPABASE_ANON_KEY`: 公开数据库密钥
 
 ## MVP成功标准
 
@@ -116,12 +133,12 @@ helios-game/
 
 ## 贡献
 
-请阅读 [项目协作开发说明书](./Helios项目协作开发说明书1.0.md) 了解详细的开发规范和流程。
+请阅读 [项目协作开发说明书v1.2](./docs/Helios项目协作开发说明书1.2.md) 了解详细的开发规范和流程。
 
 ## 项目文档
 
-- [MVP需求文档 PRD](./Helios项目MVP说明书PRD1.0.md)
-- [协作开发说明书](./Helios项目协作开发说明书1.0.md)
+- [MVP需求文档 PRD](./docs/Helios项目MVP说明书PRD1.0.md)
+- [协作开发说明书v1.2](./docs/Helios项目协作开发说明书1.2.md)
 - [Claude Code 开发指南](./CLAUDE.md)
 
 ## 许可证
