@@ -4,25 +4,33 @@ export default function Home() {
       <div className="container mx-auto px-4 py-16">
         <div className="text-center">
           <h1 className="text-6xl font-bold mb-8 bg-gradient-to-r from-yellow-400 via-pink-500 to-purple-600 bg-clip-text text-transparent">
-            Helios
+            钰涵的分支预览页面
           </h1>
           <h2 className="text-2xl mb-6 text-blue-200">
-            赫利俄斯 - 意识的棱镜
+            Helios - 赫利俄斯项目
           </h2>
           <p className="text-xl max-w-2xl mx-auto mb-12 text-gray-300 leading-relaxed">
-            这不是一个传统的游戏，而是一个意识探索与演化的沙盒。
+            这是钰涵的个人开发分支预览页面
             <br />
-            你的意识之光将通过独特的信念系统折射，创造属于你的主观现实。
+            分支名称: feature/yuhan/personal-preview
           </p>
           
           <div className="bg-white/10 backdrop-blur-sm rounded-lg p-8 max-w-md mx-auto">
-            <h3 className="text-lg font-semibold mb-4">MVP "棱镜之心" 正在构建中...</h3>
-            <div className="text-sm text-gray-400">
-              <p>🔮 信念系统</p>
-              <p>🤖 NPC代理核心</p>
-              <p>🪞 回响之室</p>
-              <p>🎭 导演引擎</p>
+            <h3 className="text-lg font-semibold mb-4">🎯 个人分支信息</h3>
+            <div className="text-sm text-gray-300 space-y-2">
+              <p>👤 开发者: 钰涵</p>
+              <p>🌿 分支: feature/yuhan/personal-preview</p>
+              <p>📅 创建时间: 2025年8月17日</p>
+              <p>🚀 状态: 预览环境运行中</p>
             </div>
+          </div>
+
+          <div className="mt-8 bg-green-500/10 border border-green-500/20 rounded-lg p-6 max-w-md mx-auto">
+            <h4 className="text-green-400 font-semibold mb-2">✅ 协作流程验证成功</h4>
+            <p className="text-sm text-green-300">
+              按照项目协作开发说明书创建的个人分支预览页面，
+              Vercel自动部署功能正常运行！
+            </p>
           </div>
         </div>
       </div>
