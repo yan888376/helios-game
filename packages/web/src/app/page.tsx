@@ -32,6 +32,28 @@ export default function Home() {
               Vercel自动部署功能正常运行！
             </p>
           </div>
+
+          <div className="mt-8 bg-blue-500/10 border border-blue-500/20 rounded-lg p-6 max-w-2xl mx-auto">
+            <h4 className="text-blue-400 font-semibold mb-4">🎮 钰涵的Helios MVP构想</h4>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm">
+              <div className="bg-purple-500/10 p-4 rounded">
+                <h5 className="text-purple-300 font-semibold mb-2">🧠 信念系统</h5>
+                <p className="text-gray-300">探索玩家内在信念的动态发现机制</p>
+              </div>
+              <div className="bg-pink-500/10 p-4 rounded">
+                <h5 className="text-pink-300 font-semibold mb-2">🤖 AI角色</h5>
+                <p className="text-gray-300">具有三层意识结构的智能NPC</p>
+              </div>
+              <div className="bg-cyan-500/10 p-4 rounded">
+                <h5 className="text-cyan-300 font-semibold mb-2">🪞 回响之室</h5>
+                <p className="text-gray-300">认知失调时的内省与顿悟空间</p>
+              </div>
+              <div className="bg-yellow-500/10 p-4 rounded">
+                <h5 className="text-yellow-300 font-semibold mb-2">🎭 叙事网络</h5>
+                <p className="text-gray-300">基于行为的动态故事生成</p>
+              </div>
+            </div>
+          </div>
         </div>
       </div>
     </main>
