@@ -6,7 +6,9 @@
     "dev": "next dev",
     "build": "next build",
     "start": "next start",
-    "lint": "next lint"
+    "lint": "next lint",
+    "build:css": "tailwindcss -i ./src/app/globals.css -o ./src/app/output.css --watch",
+    "postbuild": "tailwindcss -i ./src/app/globals.css -o ./src/app/output.css --minify"
   },
   "dependencies": {
     "@ai-sdk/openai": "^2.0.16",
