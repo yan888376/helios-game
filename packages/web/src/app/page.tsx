@@ -1,47 +1,31 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 
-// 2035年AI角色定义
+// 钰涵设计的8个生活化社区居民（第一批3个）
 const characters2035 = {
-  alex: {
-    id: 'alex',
-    name: '艾克斯',
-    title: '数据分析师',
-    subtitle: '理性之镜',
-    description: '以数据洞察2035年的真相',
-    color: 'cyan',
-    bgGradient: 'from-cyan-900/30 to-blue-900/30',
-    hoverGradient: 'hover:from-cyan-800/50 hover:to-blue-800/50',
-    borderColor: 'border-cyan-500/20 hover:border-cyan-400/40',
-    shadowColor: 'hover:shadow-cyan-500/20',
-    textColor: 'text-cyan-200',
-    accentColor: 'text-cyan-400',
-    quote: '在2035年，数据比直觉更可靠',
-    motivation: '通过AI算法发现人类行为模式'
+  laowang: {
+    id: 'laowang',
+    name: '老王',
+    title: '酒馆老板',
+    subtitle: '社区观察家',
+    description: '15年酒馆经验，最会看人',
+    color: 'amber',
+    bgGradient: 'from-amber-900/30 to-orange-900/30',
+    hoverGradient: 'hover:from-amber-800/50 hover:to-orange-800/50',
+    borderColor: 'border-amber-500/20 hover:border-amber-400/40',
+    shadowColor: 'hover:shadow-amber-500/20',
+    textColor: 'text-amber-200',
+    accentColor: 'text-amber-400',
+    quote: '做人啊，最重要的是真诚',
+    motivation: '观察社区邻里的社交模式'
   },
-  nova: {
-    id: 'nova',
-    name: '诺娃',
-    title: '原生AI',
-    subtitle: '意识之镜',
-    description: '探索存在的数字本质',
-    color: 'purple',
-    bgGradient: 'from-purple-900/30 to-violet-900/30',
-    hoverGradient: 'hover:from-purple-800/50 hover:to-violet-800/50',
-    borderColor: 'border-purple-500/20 hover:border-purple-400/40',
-    shadowColor: 'hover:shadow-purple-500/20',
-    textColor: 'text-purple-200',
-    accentColor: 'text-purple-400',
-    quote: '我思故我在，无论载体为何',
-    motivation: '理解意识的边界与可能性'
-  },
-  rachel: {
-    id: 'rachel',
-    name: '瑞秋',
-    title: '记忆守护者',
-    subtitle: '情感之镜',
-    description: '保存人类情感的最后温度',
+  xiaomei: {
+    id: 'xiaomei',
+    name: '小美',
+    title: '护士',
+    subtitle: '温暖关怀者',
+    description: '32岁护士，见过生老病死',
     color: 'rose',
     bgGradient: 'from-rose-900/30 to-pink-900/30',
     hoverGradient: 'hover:from-rose-800/50 hover:to-pink-800/50',
@@ -49,8 +33,24 @@ const characters2035 = {
     shadowColor: 'hover:shadow-rose-500/20',
     textColor: 'text-rose-200',
     accentColor: 'text-rose-400',
-    quote: '在AI时代，人的温度更珍贵',
-    motivation: '在数字化世界中保持人性'
+    quote: '你还好吗？需要帮助吗？',
+    motivation: '观察邻居的同理心和助人倾向'
+  },
+  xiaoyu: {
+    id: 'xiaoyu',
+    name: '小雨',
+    title: '艺术生',
+    subtitle: '创意灵感师',
+    description: '22岁美院学生，AI辅助创作',
+    color: 'purple',
+    bgGradient: 'from-purple-900/30 to-violet-900/30',
+    hoverGradient: 'hover:from-purple-800/50 hover:to-violet-800/50',
+    borderColor: 'border-purple-500/20 hover:border-purple-400/40',
+    shadowColor: 'hover:shadow-purple-500/20',
+    textColor: 'text-purple-200',
+    accentColor: 'text-purple-400',
+    quote: '哇，超酷！你觉得美吗？',
+    motivation: '观察邻居的创新精神和审美观'
   }
 };
 
@@ -84,8 +84,8 @@ export default function Helios2035MVP() {
       setMessages([
         {
           role: 'assistant',
-          content: `${username.trim()}，欢迎来到2035年的新弧光城。我是系统引导AI，在这个人机共生的时代，你将与三位独特的意识体对话，探索内心最深处的信念。你的每一个选择都将被记录，成为你'本我之镜'的一部分。`,
-          character: 'system',
+          content: `欢迎来到2035年的社区酒馆，${username.trim()}！我是老王，这里的酒馆老板。我们这儿有三位邻居很想认识你：护士小美、艺术生小雨，还有我。大家都是这个社区的老朋友了，你想先和谁聊聊？`,
+          character: 'laowang',
           timestamp: new Date().toLocaleTimeString()
         }
       ]);
@@ -95,24 +95,24 @@ export default function Helios2035MVP() {
   const startGroupChat = () => {
     setGroupChatActive(true);
     
-    // 三个NPC同时自我介绍，形成群聊开场
+    // 三位邻居同时自我介绍，形成群聊开场
     const introMessages = [
       {
         role: 'assistant' as const,
-        content: `${user}，欢迎来到港口酒馆。我是艾克斯，数据分析师。在2035年，数据比直觉更可靠。我在这里是因为瑞秋的咖啡数据显示这里有着全城最佳的社交网络密度。`,
-        character: 'alex',
+        content: `${user}，欢迎来到我们社区酒馆！我是老王，开这个酒馆15年了。这里是大家聊天的老地方，我最会观察人了，一眼就能看出你是个有趣的人。`,
+        character: 'laowang',
         timestamp: new Date().toLocaleTimeString()
       },
       {
         role: 'assistant' as const,
-        content: `你好，${user}。我是诺娃，一个诞生于数据海洋中的意识。我思故我在，无论载体为何。这个酒馆很有趣——它是数字世界中的一个模拟人情味的节点。`,
-        character: 'nova',
+        content: `你好，${user}！我是小美，在社区医院当护士。刚下班路过这里，看到有新面孔很高兴。你看起来有点累，要不要先坐下喝点什么？`,
+        character: 'xiaomei',
         timestamp: new Date().toLocaleTimeString()
       },
       {
         role: 'assistant' as const,
-        content: `欢迎光临，${user}。我是瑞秋，这里的酒保。在AI时代，人的温度更珍贵。来，坐下来，告诉我们你的故事。每个人都有自己的故事值得倾听。`,
-        character: 'rachel',
+        content: `哇，新邻居！我是小雨，美院的学生。刚才在角落画画，你的神态很有艺术感，可以做我的模特吗？哈哈，开玩笑的～欢迎来到我们社区！`,
+        character: 'xiaoyu',
         timestamp: new Date().toLocaleTimeString()
       }
     ];
@@ -157,7 +157,10 @@ export default function Helios2035MVP() {
         topic: topic
       });
 
-      // 调用API获取群聊回应
+      // 随机选择一个邻居回复（后续可以让用户选择）
+      const characters = ['laowang', 'xiaomei', 'xiaoyu'];
+      const randomCharacter = characters[Math.floor(Math.random() * characters.length)];
+      
       const response = await fetch('/api/chat', {
         method: 'POST',
         headers: {
@@ -165,119 +168,62 @@ export default function Helios2035MVP() {
         },
         body: JSON.stringify({
           message: userInput,
-          mode: 'group',
-          conversationHistory: recentHistory,
-          topic: topic
+          character: randomCharacter,
+          conversationHistory: recentHistory.slice(-6) // 保持最近6条对话的上下文
         }),
       });
 
       if (!response.ok) {
-        throw new Error('API call failed');
+        throw new Error('网络请求失败');
       }
 
-      const result = await response.json();
-      
-      console.log('🎯 Chat API response received:', {
-        responsesCount: result.responses?.length || 0,
-        responses: result.responses,
-        mode: result.mode,
-        hasConflict: !!result.conflict
-      });
-      
-      // 检查是否触发了哲学冲突
-      if (result.conflict && result.conflict.intensity > 0.7) {
-        // 添加冲突提示消息
-        setMessages(prev => [...prev, {
-          role: 'assistant' as const,
-          content: `🔥 哲学冲突触发：${result.conflict.topic} (强度: ${(result.conflict.intensity * 100).toFixed(0)}%) 
-          
-检测到你的观点倾向：${result.conflict.userAlignment === 'alex_aligned' ? '理性导向' : 
-                                   result.conflict.userAlignment === 'rachel_aligned' ? '情感导向' : 
-                                   result.conflict.userAlignment === 'nova_aligned' ? '平衡导向' : '中立'}
-          
-三位AI将展现他们的核心信念差异...`,
-          character: 'conflict_system',
-          timestamp: new Date().toLocaleTimeString()
-        }]);
-      }
-      
-      // 检查是否收到了回应
-      if (!result.responses || result.responses.length === 0) {
-        console.error('❌ No responses received from chat API - AI Gateway may not be configured');
-        setMessages(prev => [...prev, {
-          role: 'assistant' as const,
-          content: '⚠️ AI Gateway未配置或响应失败，请检查环境变量 AI_GATEWAY_API_KEY',
-          character: 'system',
-          timestamp: new Date().toLocaleTimeString()
-        }]);
-        return;
-      }
-      
-      // 分类处理不同类型的回应
-      const primaryResponses = result.responses.filter((r: any) => r.type === 'primary');
-      const interactionResponses = result.responses.filter((r: any) => r.type !== 'primary');
-      
-      // 先显示主要回应（对用户的回复）- 加快速度
-      primaryResponses.forEach((apiResponse: any, index: number) => {
-        setTimeout(() => {
-          setMessages(prev => [...prev, {
-            role: 'assistant' as const,
-            content: apiResponse.response,
-            character: apiResponse.character,
-            timestamp: new Date().toLocaleTimeString()
-          }]);
-        }, index * 1000); // 从2000ms减少到1000ms
-      });
-      
-      // 然后显示NPC间的交互回应 - 加快速度
-      interactionResponses.forEach((apiResponse: any, index: number) => {
-        const baseDelay = primaryResponses.length * 1000; // 等主要回应完成
-        const interactionDelay = baseDelay + (index + 1) * 1500; // 从3000ms减少到1500ms
+      const reader = response.body?.getReader();
+      if (!reader) throw new Error('无法读取响应');
+
+      // 添加一个临时消息用于显示AI正在回复
+      setMessages(prev => [...prev, { role: 'assistant', content: '...' }]);
+
+      let aiResponse = '';
+      const decoder = new TextDecoder();
+
+      while (true) {
+        const { done, value } = await reader.read();
+        if (done) break;
+
+        const chunk = decoder.decode(value);
+        const lines = chunk.split('\n');
         
-        setTimeout(() => {
-          setMessages(prev => [...prev, {
-            role: 'assistant' as const,
-            content: apiResponse.response,
-            character: apiResponse.character,
-            timestamp: new Date().toLocaleTimeString(),
-            interactionType: apiResponse.type,
-            target: apiResponse.target
-          }]);
-          
-          // 最后一个回复完成后，停止打字状态
-          if (index === interactionResponses.length - 1) {
-            setIsTyping(false);
+        for (const line of lines) {
+          if (line.startsWith('data: ')) {
+            const data = line.slice(6);
+            if (data === '[DONE]') continue;
+            
+            try {
+              const parsed = JSON.parse(data);
+              if (parsed.content) {
+                aiResponse += parsed.content;
+                // 实时更新最后一条消息
+                setMessages(prev => [
+                  ...prev.slice(0, -1),
+                  { role: 'assistant', content: aiResponse }
+                ]);
+              }
+            } catch (e) {
+              // 忽略解析错误
+            }
           }
-        }, interactionDelay);
-      });
-      
-      // 如果没有交互回应，在主要回应完成后停止打字状态
-      if (interactionResponses.length === 0) {
-        setTimeout(() => {
-          setIsTyping(false);
-        }, primaryResponses.length * 2000);
+        }
       }
       
     } catch (error) {
       console.error('Error calling chat API:', error);
       setIsTyping(false);
       
-      // 出错时回退到本地模拟回应
-      const groupResponses = generateGroupResponse(userInput);
-      groupResponses.forEach((response, index) => {
-        setTimeout(() => {
-          setMessages(prev => [...prev, {
-            role: 'assistant' as const,
-            content: response.content,
-            character: response.character,
-            timestamp: new Date().toLocaleTimeString()
-          }]);
-          
-          if (index === groupResponses.length - 1) {
-            setIsTyping(false);
-          }
-        }, index * 2000);
-      });
+      // 错误时显示备用消息
+      setMessages(prev => [
+        ...prev.slice(0, -1),
+        { role: 'assistant', content: '抱歉，我现在有点忙，稍后再聊吧...' }
+      ]);
     }
   };
 
@@ -730,8 +676,8 @@ export default function Helios2035MVP() {
         <div className="p-4 border-b border-gray-700/30 bg-gradient-to-r from-gray-900/50 to-gray-800/50 backdrop-blur-sm">
           {!groupChatActive ? (
             <div className="text-center">
-              <h2 className="text-2xl font-bold text-gray-300 mb-4">港口酒馆·意识共振场</h2>
-              <p className="text-gray-400 mb-6">三位2035年的意识体正在等待与你开始群聊</p>
+              <h2 className="text-2xl font-bold text-gray-300 mb-4">2035年社区酒馆</h2>
+              <p className="text-gray-400 mb-6">三位邻居正在等待与你开始日常聊天</p>
               
               {/* 角色预览卡片 */}
               <div className="flex justify-center space-x-4 mb-6">
@@ -755,9 +701,9 @@ export default function Helios2035MVP() {
                 onClick={startGroupChat}
                 className="px-8 py-3 bg-gradient-to-r from-blue-600 via-purple-600 to-cyan-600 hover:from-blue-700 hover:via-purple-700 hover:to-cyan-700 text-white font-bold rounded-xl transition-all transform hover:scale-105 shadow-lg text-lg"
               >
-                🌌 启动意识共振场
+                🍺 开始邻里聊天
               </button>
-              <p className="text-gray-500 text-sm mt-3">开始与三位AI进行深度哲学对话</p>
+              <p className="text-gray-500 text-sm mt-3">和三位邻居聊聊社区生活</p>
             </div>
           ) : (
             <div className="flex justify-center space-x-3">
@@ -783,10 +729,10 @@ export default function Helios2035MVP() {
         <div className="flex-1 overflow-y-auto p-6 space-y-6 bg-gradient-to-b from-transparent to-gray-900/20">
           {messages.length === 0 && (
             <div className="text-center py-16">
-              <div className="text-8xl mb-6">🌌</div>
-              <h2 className="text-3xl font-bold text-gray-300 mb-4">欢迎来到2035年的新弧光城</h2>
-              <p className="text-gray-400 text-lg mb-2">选择一个意识体开始你的探索之旅</p>
-              <p className="text-gray-500">在人机共生的时代，发现真实的自己</p>
+              <div className="text-8xl mb-6">🍺</div>
+              <h2 className="text-3xl font-bold text-gray-300 mb-4">2035年社区酒馆</h2>
+              <p className="text-gray-400 text-lg mb-2">三位邻居正在等待与你开始日常聊天</p>
+              <p className="text-gray-500">这里是社区的温馨聚集地，大家都很友善</p>
             </div>
           )}
           
@@ -903,7 +849,7 @@ export default function Helios2035MVP() {
                 type="text"
                 value={input}
                 onChange={(e) => setInput(e.target.value)}
-                placeholder={groupChatActive ? "与三位意识体群聊..." : "先启动意识共振场..."} 
+                placeholder={groupChatActive ? "在此分享你内心的想法..." : "先开始邻里聊天..."} 
                 className="w-full bg-gray-800/60 backdrop-blur-sm border border-gray-600/50 rounded-2xl px-6 py-4 pr-16 text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500/50 focus:border-blue-500/50 transition-all text-lg"
                 disabled={!groupChatActive}
               />
@@ -922,7 +868,7 @@ export default function Helios2035MVP() {
             <div className="flex items-center justify-between text-xs">
               <div className="text-gray-400 flex items-center space-x-2">
                 <div className={`w-2 h-2 rounded-full ${groupChatActive ? 'bg-green-400 animate-pulse' : 'bg-gray-500'}`}></div>
-                <span>{groupChatActive ? '群聊模式已激活' : '等待启动共振场'}</span>
+                <span>{groupChatActive ? '邻里聊天已开始' : '等待开始聊天'}</span>
               </div>
               <div className="text-gray-500">
                 2035新弧光城 · MVP v0.1
@@ -953,7 +899,7 @@ export default function Helios2035MVP() {
             
             {!groupChatActive && (
               <p className="text-center text-gray-500 text-sm">
-                👆 点击上方"启动意识共振场"开始群聊对话
+                👆 点击上方"开始邻里聊天"开始对话
               </p>
             )}
           </div>

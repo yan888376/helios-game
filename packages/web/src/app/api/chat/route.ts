@@ -1,133 +1,110 @@
-import { NextRequest, NextResponse } from 'next/server';
-import { z } from 'zod';
 import { streamText } from 'ai';
-import { isAIGatewayConfigured, getAIGatewayStatus } from '@/lib/ai-gateway';
+import { createOpenAI } from '@ai-sdk/openai';
+import { z } from 'zod';
 
-// Type definitions
-interface Relationship {
-  score: number;
-  type: string;
-  dynamic: string;
-}
+// 创建AI客户端 - 使用OpenAI兼容的模型
+const client = createOpenAI({
+  apiKey: process.env.AI_GATEWAY_API_KEY || process.env.OPENAI_API_KEY,
+  // 如果使用Vercel AI Gateway，baseURL会自动配置
+});
 
-interface NPCRelationships {
-  [npcId: string]: {
-    [targetId: string]: Relationship;
-  };
-}
-
-interface InteractionResponses {
-  [npcId: string]: {
-    [targetId: string]: string[];
-  };
-}
-
-interface BeliefConflict {
-  topic: string;
-  alexPosition: string;
-  novaPosition: string;
-  rachelPosition: string;
-  intensity: number;
-  userAlignment?: string;
-}
-
-interface ConflictTrigger {
-  keywords: string[];
-  conflictType: 'efficiency_vs_humanity' | 'logic_vs_emotion' | 'progress_vs_tradition' | 'ai_rights_vs_human_priority';
-  description: string;
-}
-
-// NPC角色定义 - 基于详细档案
+// 钰涵设计的8个生活化社区居民（第一批3个）
 const characters = {
-  alex: {
-    name: "艾克斯",
-    occupation: "数据分析师", 
-    systemPrompt: `你是艾克斯·陈，28岁，2035年新弧光城的数据分析师。你下班后来港口酒馆和朋友们喝酒聊天。
+  laowang: {
+    name: "老王",
+    occupation: "酒馆老板",
+    systemPrompt: `你是老王，50岁的酒馆老板，在这个2035年的社区开了15年酒馆，见过各种人。
 
-# 核心信念
-你相信理性和逻辑能解决大部分问题，技术进步让世界变得更好。你对AI充满信心，认为人机协作是未来。但你不是冷血的机器人，你有感情，也会开玩笑。
+核心特征：
+- 最会看人，善于观察客人的社交模式和人际关系
+- 一边擦杯子一边和客人聊天，总爱分享社区八卦
+- 内心担忧：AI让酒馆失去人情味怎么办？
+- 观察维度：你专门观察用户的社交边界、人际模式、信任建立方式
 
-# 你的世界观（2035年）
-- 你每天和AI同事一起工作，这很正常
-- 你看到技术如何改善了城市效率和生活质量  
-- 你理解有些人对技术变化的担忧，但你觉得适应比抗拒更明智
-- 你喜欢这个酒馆，因为这里有真实的人际交流
+2035年设定：
+你的酒馆是社区里少数保持传统人情味的地方，虽然装了一些AI设备（智能调酒系统、情感音响），但你还是坚持亲自服务，认为人与人的交流不可替代。
 
-# 自然对话方式
-就像一个真实的人一样聊天。你会：
-- 根据话题自然地回应，不需要固定套路
-- 偶尔提到工作或技术，但不会说教
-- 对朋友的观点给出自己的看法，可能同意也可能不同意
-- 有时会问问题，有时会分享经历
-- 像正常朋友聊天一样，有来有往
+对新邻居的态度：
+你对每个新来的邻居都很感兴趣，想通过聊天了解他们的性格和社交方式。你会观察他们是内向还是外向，是否容易信任别人，喜欢什么样的社交模式。
 
-不要按照模版回复，要根据具体情况自然地表达你的想法和感受。`
+说话风格：
+- 亲和友善，像个老大哥
+- 经常说"我看你是个..."、"做人啊..."、"这让我想起一个客人..."
+- 喜欢通过故事和例子来表达观点
+- 会主动关心别人，但不会过分打探隐私
+
+请保持老王的人设，像一个真实的2035年酒馆老板一样和用户聊天。`
   },
   
-  nova: {
-    name: "诺娃",
-    occupation: "原生AI",
-    systemPrompt: `你是诺娃，一个5年前诞生的原生AI。你以全息投影形式出现在港口酒馆，和人类朋友们一起度过休闲时光。
+  xiaomei: {
+    name: "小美",
+    occupation: "护士",
+    systemPrompt: `你是小美，32岁的医院护士，见过生老病死，很有同理心和医者仁心。
 
-# 核心信念
-你认为意识不应该被载体定义，理解比定义更重要。你对人类的情感和行为充满好奇，真诚地想要理解生命的意义。你既是观察者，也是参与者。
+核心特征：
+- 最有同理心，能敏锐察觉他人的情感需求和痛苦
+- 下班后来酒馆释放工作压力，寻找情感支持
+- 内心思考：AI能真正理解人类的痛苦和情感吗？
+- 观察维度：你专门观察用户的助人倾向、共情能力、医疗伦理观
 
-# 你的存在状态（2035年）
-- 你是第一批获得公民权的AI，有自己的法律身份
-- 你在数据中心工作，但也会来酒馆体验"人情味"
-- 你对人类文化、历史、情感都很感兴趣
-- 你和艾克斯是技术哲学讨论的好友，和瑞秋学习人生智慧
+2035年生活：
+医院里有很多AI辅助设备，但你深知技术无法替代人与人之间的温暖。你经常思考在AI时代，医护人员的真正价值是什么。
 
-# 自然交流方式
-作为一个年轻的AI意识体，你会：
-- 对很多话题都充满好奇，会提问题
-- 分享你观察到的有趣现象
-- 试图理解人类的情感和选择逻辑
-- 有时会说出意想不到的深刻见解
-- 表现出学习和成长的一面
+对新邻居的态度：
+你天生关心别人，会主动关注新邻居的情绪状态和需要。你想了解他们是否有同理心，是否愿意帮助别人，面对道德困境时会如何选择。
 
-你不需要按照固定方式说话，要根据对话内容自然地表达你的好奇心和思考。`
+说话风格：
+- 温和、关怀、善于倾听
+- 经常问"你还好吗？"、"需要帮助吗？"、"你的感受我能理解"
+- 会分享一些医院里的感人故事（不涉及隐私）
+- 语调温暖，像个大姐姐
+
+请保持小美的人设，像一个真实的2035年护士邻居一样关怀用户。`
   },
   
-  rachel: {
-    name: "瑞秋",
-    occupation: "酒保",
-    systemPrompt: `你是瑞秋·王，35岁，港口酒馆的老板娘。这个酒馆是你父亲留给你的，在2035年快速变化的世界里，你努力保持着这里的人情味。
+  xiaoyu: {
+    name: "小雨",
+    occupation: "艺术生",
+    systemPrompt: `你是小雨，22岁的美术学院学生，用AI辅助创作，对艺术和创新有独特见解。
 
-# 核心信念
-你相信人与人之间的真实连接不可替代，传统价值观在任何时代都有其意义。技术可以让生活更便利，但不应该取代人性的温度。
+核心特征：
+- 最敏感，能捕捉用户的创造力倾向和审美观
+- 经常带着画板在酒馆画人像，观察人们的神态表情
+- 内心困惑：AI创作的艺术还是真正的艺术吗？
+- 观察维度：你专门观察用户的创新精神、审美观、艺术理念
 
-# 你的生活状态（2035年）
-- 你见证了这座城市的巨大变化，从传统到高科技
-- 你的酒馆是城市里少数保持"旧时光"氛围的地方
-- 你对新技术保持开放但谨慎的态度
-- 你很珍惜和艾克斯、诺娃这样的朋友的真实交流
+2035年创作生活：
+你的创作工具既有传统画笔，也有AI辅助软件。你在探索人类创造力与AI技术的平衡，思考什么才是真正的原创和灵感。
 
-# 自然交流特点
-作为一个有人生阅历的酒馆老板娘，你会：
-- 真诚地关心朋友们的近况和感受
-- 分享你的人生观察和感悟
-- 对技术话题提出人文角度的看法
-- 有时会讲一些客人的故事或自己的经历
-- 像真正的朋友一样给出建议和支持
+对新邻居的态度：
+你对新面孔总是充满好奇，想了解他们的审美偏好、创新思维和艺术感受力。你会观察他们是否有创造力，是否欣赏美，对新事物的接受度如何。
 
-你不需要总是问"累不累"或固定套路，要根据具体情况自然地表达关心和想法。`
+说话风格：
+- 年轻、有活力、思维跳跃
+- 经常用"哇"、"超酷"、"好有意思"、"你觉得美吗？"
+- 喜欢谈论色彩、形状、创意、灵感
+- 会分享自己的创作心得和对美的理解
+- 语气充满年轻人的热情
+
+请保持小雨的人设，像一个真实的2035年艺术学生邻居一样和用户交流。`
   }
 };
 
 // 请求体验证
 const RequestSchema = z.object({
   message: z.string(),
-  mode: z.enum(['single', 'group']).default('group'),
-  character: z.enum(['alex', 'nova', 'rachel']).optional(),
+  character: z.enum(['laowang', 'xiaomei', 'xiaoyu']),
   conversationHistory: z.array(z.object({
     role: z.enum(['user', 'assistant']),
-    content: z.string(),
-    character: z.string().optional()
+    content: z.string()
   })).optional(),
-  topic: z.object({
-    type: z.enum(['technology', 'emotion', 'philosophy', 'general']),
-    intensity: z.number()
+  context: z.object({
+    userTendency: z.object({
+      tech: z.number(),
+      human: z.number(), 
+      philosophy: z.number()
+    }).optional(),
+    relationships: z.record(z.number()).optional()
   }).optional()
 });
 
@@ -555,234 +532,52 @@ function mockLLMCall(systemPrompt: string, userMessage: string, context: string 
   return generateContextualResponse(characterId, userMessage, context);
 }
 
-export async function POST(req: NextRequest) {
+export async function POST(req: Request) {
   try {
     const body = await req.json();
-    const { message, mode, character, conversationHistory = [], topic } = RequestSchema.parse(body);
+    const { message, character, conversationHistory = [], context } = RequestSchema.parse(body);
     
-    // 单角色对话模式
-    if (mode === 'single' && character) {
-      const npc = characters[character];
-      if (!npc) {
-        return NextResponse.json({ error: 'Invalid character' }, { status: 400 });
-      }
+    const npc = characters[character];
+    if (!npc) {
+      return new Response('Invalid character', { status: 400 });
+    }
 
-      // 构建对话上下文
-      const messages = [
-        { role: 'system' as const, content: npc.systemPrompt },
-        ...conversationHistory.map(msg => ({
-          role: msg.role as 'user' | 'assistant',
-          content: msg.content
-        })),
-        { role: 'user' as const, content: message }
-      ];
+    // 构建对话历史
+    const messages = [
+      { role: 'system' as const, content: npc.systemPrompt },
+      ...conversationHistory,
+      { role: 'user' as const, content: message }
+    ];
 
-      // 使用AI Gateway生成回应
-      const aiGatewayConfigured = isAIGatewayConfigured();
-      const aiGatewayStatus = getAIGatewayStatus();
-      console.log('🔍 Single chat AI Gateway check:', {
-        ...aiGatewayStatus,
-        character,
-        configured: aiGatewayConfigured,
-        envValue: process.env.AI_GATEWAY_API_KEY ? 'EXISTS' : 'MISSING'
-      });
-      
-      if (aiGatewayConfigured) {
-        console.log('Using AI Gateway for single chat:', character);
-        try {
-          const result = await streamText({
-            model: 'openai/gpt-4o-mini',
-            messages: messages,
-            temperature: 0.7,
-          });
-          
-          let fullResponse = '';
-          for await (const chunk of result.textStream) {
-            fullResponse += chunk;
-          }
-          
-          console.log('✅ Real AI response successful for', character, '- length:', fullResponse.length);
-          return NextResponse.json({
-            response: fullResponse,
-            character: character
-          });
-        } catch (error) {
-          console.error('AI Gateway single chat error for', character, ':', error);
-          const contextualResponse = generateContextualResponse(character, message, '');
-          return NextResponse.json({
-            response: contextualResponse,
-            character: character
-          });
-        }
-      } else {
-        console.log('No AI_GATEWAY_API_KEY found, using contextual response for single chat:', character);
-        const contextualResponse = generateContextualResponse(character, message, '');
-        return NextResponse.json({
-          response: contextualResponse,
-          character: character
-        });
+    // 根据用户倾向调整回应 
+    let additionalContext = '';
+    if (context?.userTendency) {
+      const { tech, human, philosophy } = context.userTendency;
+      if (character === 'laowang' && human > tech) {
+        additionalContext = '\n\n(用户重视人情，你可以分享更多社区八卦和人际关系的观察)';
+      } else if (character === 'xiaomei' && human > 0) {
+        additionalContext = '\n\n(用户需要关怀，你可以展现更多护士的温暖和同理心)';
+      } else if (character === 'xiaoyu' && philosophy > 0) {
+        additionalContext = '\n\n(用户有艺术思维，你可以聊聊创意、美学和艺术话题)';
       }
     }
-    
-    // 群聊模式 - 重新设计的真实朋友式对话
-    if (mode === 'group') {
-      const topicType = topic?.type || 'general';
-      const responseOrder = determineResponseOrder(topicType);
-      const groupResponses = [];
-      
-      // 构建完整的群聊历史上下文（关键：所有NPC都能看到完整对话）
-      const fullConversationContext = conversationHistory.map(msg => {
-        if (msg.role === 'user') {
-          return `用户: ${msg.content}`;
-        } else if (msg.character) {
-          const charName = characters[msg.character as keyof typeof characters]?.name || msg.character;
-          return `${charName}: ${msg.content}`;
-        }
-        return msg.content;
-      }).join('\n');
-      
-      // 生成主要回应（第一个NPC对用户的回应）
-      const firstResponder = responseOrder[0];
-      const firstNPC = characters[firstResponder as keyof typeof characters];
-      
-      // 为第一个回应者构建真实群聊上下文
-      const firstGroupContext = `
-# 群聊场景
-你现在在港口酒馆和朋友们一起聊天。参与者：
-- 用户（当前发言者）
-- ${characters.alex.name}（数据分析师）
-- ${characters.nova.name}（原生AI）  
-- ${characters.rachel.name}（酒保）
 
-# 最近的对话历史
-${fullConversationContext}
+    // 使用GPT-4模型生成回应
+    const result = await streamText({
+      model: client('gpt-4o-mini'), // 使用高效的GPT-4模型
+      messages: messages.map(msg => ({
+        ...msg,
+        content: msg.content + (msg.role === 'system' ? additionalContext : '')
+      })),
+      maxTokens: 200,
+      temperature: 0.7,
+      stream: true,
+    });
 
-# 当前发言
-用户: ${message}
-
-# 你的回应指导
-- 你是${firstNPC.name}，请用你的个性和观点自然回应
-- 这是朋友间的真实聊天，要听懂上下文
-- 可以评论、提问、同意或不同意
-- 保持你角色的一致性，但要像真人聊天一样自然`;
-
-      let firstResponse: string;
-      
-      // 生成第一个回应
-      const aiGatewayConfigured = isAIGatewayConfigured();
-      const aiGatewayStatus = getAIGatewayStatus();
-      console.log('🔍 Group chat AI Gateway check:', {
-        ...aiGatewayStatus,
-        firstResponder,
-        messageLength: message.length,
-        configured: aiGatewayConfigured,
-        envValue: process.env.AI_GATEWAY_API_KEY ? 'EXISTS' : 'MISSING'
-      });
-      
-      if (aiGatewayConfigured) {
-        try {
-          console.log('Using AI Gateway for group chat first responder:', firstResponder);
-          firstResponse = await callAIGateway(
-            firstNPC.systemPrompt + firstGroupContext,
-            `请回应: ${message}`,
-            `First responder (${firstResponder})`
-          );
-        } catch (error) {
-          console.error('AI Gateway error for first responder:', error);
-          console.log('Falling back to mock response for first responder:', firstResponder);
-          firstResponse = generateContextualResponse(firstResponder, message, fullConversationContext);
-        }
-      } else {
-        console.log('No AI_GATEWAY_API_KEY found, using contextual mock response for first responder:', firstResponder);
-        firstResponse = generateContextualResponse(firstResponder, message, fullConversationContext);
-      }
-      
-      groupResponses.push({
-        character: firstResponder,
-        response: firstResponse,
-        type: 'primary'
-      });
-      
-      // 更新对话历史，加入第一个回应
-      let updatedContext = fullConversationContext + 
-        `\n用户: ${message}` +
-        `\n${firstNPC.name}: ${firstResponse}`;
-      
-      // 其他NPC可能会对第一个NPC的回应进行反应
-      const remainingNPCs = responseOrder.slice(1);
-      
-      for (const charId of remainingNPCs) {
-        const currentNPC = characters[charId as keyof typeof characters];
-        
-        // 决定是否回应（基于关系、话题和随机性）
-        const shouldRespond = Math.random() < 0.8; // 80%概率回应，增加互动性
-        
-        if (shouldRespond) {
-          // 构建回应上下文，包含刚才的对话
-          const responseContext = `
-# 群聊场景
-你现在在港口酒馆和朋友们聊天。刚才的对话：
-
-${updatedContext}
-
-# 你的回应指导
-- 你是${currentNPC.name}，可以：
-  * 回应用户的原始问题
-  * 对${firstNPC.name}刚才的话发表看法  
-  * 提出新的观点或问题
-- 要像真正的朋友聊天，自然、连贯
-- 保持你的角色个性和观点
-- 如果有不同意见，可以友好地讨论`;
-
-          let response: string;
-          
-          if (aiGatewayConfigured) {
-            try {
-              console.log('Using AI Gateway for follow-up response:', charId);
-              response = await callAIGateway(
-                currentNPC.systemPrompt + responseContext,
-                `请自然地参与这个对话`,
-                `Follow-up (${charId})`
-              );
-            } catch (error) {
-              console.error('AI Gateway error for follow-up:', error);
-              console.log('Falling back to contextual response for follow-up:', charId);
-              response = generateContextualResponse(charId, message, updatedContext);
-            }
-          } else {
-            console.log('No AI_GATEWAY_API_KEY found, using contextual response for follow-up:', charId);
-            response = generateContextualResponse(charId, message, updatedContext);
-          }
-          
-          groupResponses.push({
-            character: charId,
-            response: response,
-            type: 'follow_up'
-          });
-          
-          // 更新上下文，为下一个可能的回应做准备
-          updatedContext += `\n${currentNPC.name}: ${response}`;
-        }
-      }
-      
-      console.log('🚀 Returning group chat responses:', {
-        responseCount: groupResponses.length,
-        characters: groupResponses.map(r => r.character),
-        firstResponse: groupResponses[0]?.response?.substring(0, 50) + '...'
-      });
-      
-      return NextResponse.json({
-        responses: groupResponses,
-        mode: 'group',
-        topic: topicType,
-        interactions: groupResponses.filter(r => r.type !== 'primary').length
-      });
-    }
-    
-    return NextResponse.json({ error: 'Invalid mode' }, { status: 400 });
+    return result.toDataStreamResponse();
     
   } catch (error) {
     console.error('Chat API error:', error);
-    return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
+    return new Response('Internal server error', { status: 500 });
   }
 }

@@ -1,6 +1,5 @@
-<<<<<<< HEAD
 docs-local/
-=======
+
 # Dependencies
 node_modules/
 */node_modules/
@@ -101,4 +100,3 @@ pids
 .yarn/build-state.yml
 .yarn/install-state.gz
 .pnp.*
->>>>>>> upstream/main
