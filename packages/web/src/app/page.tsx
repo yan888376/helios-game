@@ -210,7 +210,7 @@ export default function Helios2035MVP() {
   // NPC自主对话功能
   const triggerNPCAutoChat = async () => {
     if (!npcAutoChat || !groupChatActive || isTyping) {
-      console.log('NPC auto chat blocked:', {
+      console.log('❌ NPC auto chat blocked:', {
         npcAutoChat,
         groupChatActive,
         isTyping
@@ -218,7 +218,7 @@ export default function Helios2035MVP() {
       return;
     }
     
-    console.log('Starting NPC auto chat...');
+    console.log('🎭 Starting NPC auto chat...');
     
     try {
       const recentHistory = messages.slice(-8).map(msg => ({
@@ -308,32 +308,40 @@ export default function Helios2035MVP() {
 
   // 自动触发NPC对话的定时器
   useEffect(() => {
-    if (!groupChatActive || !npcAutoChat) return;
+    if (!groupChatActive || !npcAutoChat) {
+      console.log('❌ NPC auto chat disabled:', { groupChatActive, npcAutoChat });
+      return;
+    }
     
-    console.log('Setting up NPC auto chat timer...');
+    console.log('✅ Setting up NPC auto chat timer...');
     
-    // 在群聊激活后设置定时器，每15秒检查一次是否触发自主对话
+    // 在群聊激活后设置定时器，每8秒检查一次是否触发自主对话
     const interval = setInterval(() => {
       const currentTime = Date.now();
       const silentDuration = currentTime - lastMessageTime;
       
-      console.log('Checking NPC auto chat:', {
+      console.log('🔍 Checking NPC auto chat:', {
         silentDuration: Math.round(silentDuration / 1000) + 's',
         isTyping,
         groupChatActive,
         npcAutoChat,
-        shouldTrigger: silentDuration > 10000 && !isTyping
+        messagesCount: messages.length,
+        lastMessage: messages[messages.length - 1]?.content?.substring(0, 30) + '...',
+        shouldTrigger: silentDuration > 10000 && !isTyping && groupChatActive
       });
       
-      // 如果沉默超过10秒且不在打字状态，有概率触发自主对话 - 减少等待时间
-      if (silentDuration > 10000 && !isTyping) {
-        console.log('Triggering NPC auto chat...');
+      // 如果沉默超过10秒且不在打字状态，触发自主对话
+      if (silentDuration > 10000 && !isTyping && groupChatActive) {
+        console.log('🚀 Triggering NPC auto chat after', Math.round(silentDuration / 1000), 'seconds of silence...');
         triggerNPCAutoChat();
       }
-    }, 8000); // 每8秒检查一次，更频繁
+    }, 8000); // 每8秒检查一次
 
-    return () => clearInterval(interval);
-  }, [groupChatActive, npcAutoChat, lastMessageTime, isTyping]);
+    return () => {
+      console.log('🛑 Clearing NPC auto chat timer');
+      clearInterval(interval);
+    };
+  }, [groupChatActive, npcAutoChat, lastMessageTime, isTyping, messages.length]);
 
   // 生成群聊回应的核心逻辑（作为API调用失败时的回退）
   const generateGroupResponse = (userInput: string) => {
