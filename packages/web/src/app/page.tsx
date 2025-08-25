@@ -140,6 +140,10 @@ export default function Helios2035MVP() {
     setInput('');
     setIsTyping(true);
 
+    // 随机选择一个邻居回复（后续可以让用户选择）
+    const characters = ['laowang', 'xiaomei', 'xiaoyu'];
+    const randomCharacter = characters[Math.floor(Math.random() * characters.length)];
+
     try {
       // 分析话题类型
       const topic = analyzeTopic(userInput);
@@ -156,10 +160,6 @@ export default function Helios2035MVP() {
         historyLength: recentHistory.length,
         topic: topic
       });
-
-      // 随机选择一个邻居回复（后续可以让用户选择）
-      const characters = ['laowang', 'xiaomei', 'xiaoyu'];
-      const randomCharacter = characters[Math.floor(Math.random() * characters.length)];
       
       const response = await fetch('/api/chat', {
         method: 'POST',
@@ -181,7 +181,12 @@ export default function Helios2035MVP() {
       if (!reader) throw new Error('无法读取响应');
 
       // 添加一个临时消息用于显示AI正在回复
-      setMessages(prev => [...prev, { role: 'assistant', content: '...' }]);
+      setMessages(prev => [...prev, { 
+        role: 'assistant', 
+        content: '...',
+        character: randomCharacter,
+        timestamp: new Date().toLocaleTimeString()
+      }]);
 
       let aiResponse = '';
       const decoder = new TextDecoder();
@@ -205,7 +210,12 @@ export default function Helios2035MVP() {
                 // 实时更新最后一条消息
                 setMessages(prev => [
                   ...prev.slice(0, -1),
-                  { role: 'assistant', content: aiResponse }
+                  { 
+                    role: 'assistant', 
+                    content: aiResponse,
+                    character: randomCharacter,
+                    timestamp: new Date().toLocaleTimeString()
+                  }
                 ]);
               }
             } catch (e) {
@@ -215,6 +225,8 @@ export default function Helios2035MVP() {
         }
       }
       
+      setIsTyping(false);
+      
     } catch (error) {
       console.error('Error calling chat API:', error);
       setIsTyping(false);
@@ -222,7 +234,12 @@ export default function Helios2035MVP() {
       // 错误时显示备用消息
       setMessages(prev => [
         ...prev.slice(0, -1),
-        { role: 'assistant', content: '抱歉，我现在有点忙，稍后再聊吧...' }
+        { 
+          role: 'assistant', 
+          content: '抱歉，我现在有点忙，稍后再聊吧...',
+          character: randomCharacter,
+          timestamp: new Date().toLocaleTimeString()
+        }
       ]);
     }
   };
