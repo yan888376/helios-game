@@ -177,53 +177,16 @@ export default function Helios2035MVP() {
         throw new Error('网络请求失败');
       }
 
-      const reader = response.body?.getReader();
-      if (!reader) throw new Error('无法读取响应');
-
-      // 添加一个临时消息用于显示AI正在回复
+      // ✅ 正确：按照成功指南使用简化的响应处理
+      const result = await response.text();
+      
+      // 添加NPC回复消息
       setMessages(prev => [...prev, { 
         role: 'assistant', 
-        content: '...',
+        content: result,
         character: randomCharacter,
         timestamp: new Date().toLocaleTimeString()
       }]);
-
-      let aiResponse = '';
-      const decoder = new TextDecoder();
-
-      while (true) {
-        const { done, value } = await reader.read();
-        if (done) break;
-
-        const chunk = decoder.decode(value);
-        const lines = chunk.split('\n');
-        
-        for (const line of lines) {
-          if (line.startsWith('data: ')) {
-            const data = line.slice(6);
-            if (data === '[DONE]') continue;
-            
-            try {
-              const parsed = JSON.parse(data);
-              if (parsed.content) {
-                aiResponse += parsed.content;
-                // 实时更新最后一条消息
-                setMessages(prev => [
-                  ...prev.slice(0, -1),
-                  { 
-                    role: 'assistant', 
-                    content: aiResponse,
-                    character: randomCharacter,
-                    timestamp: new Date().toLocaleTimeString()
-                  }
-                ]);
-              }
-            } catch (e) {
-              // 忽略解析错误
-            }
-          }
-        }
-      }
       
       setIsTyping(false);
       

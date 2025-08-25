@@ -152,8 +152,18 @@ export async function POST(req: Request) {
       temperature: 0.8, // 按照指南调整为0.8
     });
 
+    // 等待完整响应
+    let fullResponse = '';
+    for await (const chunk of result.textStream) {
+      fullResponse += chunk;
+    }
+
     console.log('✅ AI Gateway response successful');
-    return result.toTextStreamResponse();
+    
+    // 返回完整响应
+    return new Response(fullResponse, {
+      headers: { 'Content-Type': 'text/plain' },
+    });
     
   } catch (error) {
     console.error('Chat API error:', error);
