@@ -1,12 +1,7 @@
 import { streamText } from 'ai';
-import { createOpenAI } from '@ai-sdk/openai';
 import { z } from 'zod';
 
-// 创建AI客户端 - 使用OpenAI兼容的模型
-const client = createOpenAI({
-  apiKey: process.env.AI_GATEWAY_API_KEY || process.env.OPENAI_API_KEY,
-  // 如果使用Vercel AI Gateway，baseURL会自动配置
-});
+// ✅ 正确：按照成功指南，不需要复杂的provider配置
 
 // 钰涵设计的8个生活化社区居民（第一批3个）
 const characters = {
@@ -110,8 +105,17 @@ const RequestSchema = z.object({
 
 export async function POST(req: Request) {
   try {
+    // ✅ 调试信息：检查环境变量配置（按照成功指南）
+    console.log('🔍 AI Gateway check:', {
+      hasKey: !!process.env.AI_GATEWAY_API_KEY,
+      configured: process.env.AI_GATEWAY_API_KEY ? 'YES' : 'NO',
+      envValue: process.env.AI_GATEWAY_API_KEY ? 'CONFIGURED' : 'MISSING'
+    });
+
     const body = await req.json();
     const { message, character, conversationHistory = [], context } = RequestSchema.parse(body);
+    
+    console.log('📨 Chat API request:', { message, character });
     
     const npc = characters[character];
     if (!npc) {
@@ -138,16 +142,17 @@ export async function POST(req: Request) {
       }
     }
 
-    // 使用GPT-4模型生成回应
+    // ✅ 正确：直接使用模型字符串（按照成功指南）
     const result = await streamText({
-      model: client('gpt-4o-mini'), // 使用高效的GPT-4模型
+      model: 'openai/gpt-4o-mini', // 核心：字符串格式
       messages: messages.map(msg => ({
         ...msg,
         content: msg.content + (msg.role === 'system' ? additionalContext : '')
       })),
-      temperature: 0.7,
+      temperature: 0.8, // 按照指南调整为0.8
     });
 
+    console.log('✅ AI Gateway response successful');
     return result.toTextStreamResponse();
     
   } catch (error) {
