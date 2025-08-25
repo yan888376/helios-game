@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 
 // 钰涵设计的8个生活化社区居民（第一批3个）
 const characters2035 = {
